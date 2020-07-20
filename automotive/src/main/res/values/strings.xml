@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CarspeeDemo</string>
+    <string name="car_speed_text">Current Car Speed : %1$d</string>
+</resources>
