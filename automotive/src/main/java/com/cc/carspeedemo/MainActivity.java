@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        carSpeedTextView =(TextView) findViewById(R.id.car_speed_text_view);
+        carSpeedTextView = findViewById(R.id.car_speed_text_view);
 
         String text = getString(R.string.car_speed_text,carSpeed);
 
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (permissions[0] == Car.PERMISSION_SPEED && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (permissions[0].equals(Car.PERMISSION_SPEED )&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
         //if (permissions[0] == Car.PERMISSION_CONTROL_CAR_CLIMATE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "onRequestPermissionsResult: Permission for"+ permissions[0]+" GRANTED");
             startService();
@@ -124,8 +124,16 @@ public class MainActivity extends AppCompatActivity {
         public void onSensorChanged(CarSensorEvent carSensorEvent) {
             Log.d(TAG, "onSensorChanged: carSensorEvent :"+carSensorEvent.toString());
             carSpeed = (int)carSensorEvent.floatValues[0];
-            String text = getString(R.string.car_speed_text,carSpeed);
-            carSpeedTextView.setText(text);
+
+            // In order to modify the UI, we have to make sure the code is running on the "UI thread.
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    String text = getString(R.string.car_speed_text,carSpeed);
+                    carSpeedTextView.setText(text);
+
+                }
+            });
+
         }
 
 //        public void onSensorValueChanged(CarSensorEvent carSensorEvent)
@@ -146,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             mCarSensorManager = (CarSensorManager) mCarService.getCarManager(Car.SENSOR_SERVICE);
-            mCarSensorManager.registerListener((CarSensorManager.OnSensorChangedListener) mSenserListener,CarSensorManager.SENSOR_TYPE_CAR_SPEED,CarSensorManager.SENSOR_RATE_NORMAL);
+            mCarSensorManager.registerListener(mSenserListener,CarSensorManager.SENSOR_TYPE_CAR_SPEED,CarSensorManager.SENSOR_RATE_NORMAL);
         } catch (CarNotConnectedException e) {
             e.printStackTrace();
         }
@@ -160,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void EstablishCarServiceConnection() {
 
-        if (!this.getPackageManager().hasSystemFeature(this.getPackageManager().FEATURE_AUTOMOTIVE)) {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
             Log.w(TAG, "EstablishCarServiceConnection: FEATURE_AUTOMOTIVE not available");
             return;
         }
